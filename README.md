@@ -1,0 +1,1 @@
+# MedusaJS Talon.One External Promotion Integration
