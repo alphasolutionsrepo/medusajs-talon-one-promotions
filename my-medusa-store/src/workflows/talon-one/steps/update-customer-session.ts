@@ -18,7 +18,7 @@ export const updateCustomerSessionStep = createStep(
     const { cart, promotionCodesToApply = [] } = data;
 
     logger.info(
-      `updateCustomerSessionStep: cart_id: ${cart.id}, promotionCodesToApply: ${promotionCodesToApply}`
+      `updateCustomerSessionStep: cart_id=${cart.id}, promotionCodesToApply=${promotionCodesToApply}`
     );
 
     const talonOneService = container.resolve<ITalonOneModuleService>(TALON_ONE_MODULE);

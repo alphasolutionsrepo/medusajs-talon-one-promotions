@@ -28,17 +28,7 @@ export const getExternalPromotionCodesToApply = createStep(
       });
     });
 
-    console.log(
-      "getExternalPromotionCodesToApply - adjustmentCodes:",
-      JSON.stringify(adjustmentCodes, null, 2)
-    );
-
     const mergedCodes: string[] = [...new Set([...(promo_codes ?? []), ...adjustmentCodes])];
-
-    console.log(
-      "getExternalPromotionCodesToApply - mergedCodes:",
-      JSON.stringify(mergedCodes, null, 2)
-    );
 
     return new StepResponse(mergedCodes as GetExternalPromotionCodesToApplyStepOutput);
   }

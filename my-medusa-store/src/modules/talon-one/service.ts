@@ -1,7 +1,6 @@
 import {
   CartDTO,
   ComputeActions,
-  ConfigModule,
   LineItemAdjustmentDTO,
   Logger,
   PromotionTypes,
@@ -9,14 +8,6 @@ import {
 } from "@medusajs/framework/types";
 import { ComputedActions, isDefined, isString } from "@medusajs/framework/utils";
 import { ApiClient, IntegrationApi, IntegrationStateV2 } from "talon_one";
-
-const defaultClient = ApiClient.instance;
-defaultClient.basePath = process.env.TALON_ONE_BASE_PATH!;
-const auth = defaultClient.authentications["api_key_v1"];
-auth.apiKey = process.env.TALON_ONE_API_KEY!;
-auth.apiKeyPrefix = process.env.TALON_ONE_API_KEY_PREFIX!;
-
-const integrationApi = new IntegrationApi();
 
 type TalonEffect = {
   campaignId: number;
@@ -36,18 +27,22 @@ export type ModuleOptions = {
 
 export type InjectedDependencies = {
   logger: Logger;
-  configModule: ConfigModule;
 };
 
 class TalonOneModuleService {
-  private options: ModuleOptions;
   private logger: Logger;
-  private configModule: ConfigModule;
+  private integrationApi: IntegrationApi;
 
-  constructor({ logger, configModule }: InjectedDependencies, options: ModuleOptions) {
+  constructor({ logger }: InjectedDependencies, options: ModuleOptions) {
     this.logger = logger;
-    this.options = options;
-    this.configModule = configModule;
+
+    const defaultClient = ApiClient.instance;
+    defaultClient.basePath = options.basePath!;
+    const auth = defaultClient.authentications["api_key_v1"];
+    auth.apiKey = options.apiKey!;
+    auth.apiKeyPrefix = options.apiKeyPrefix!;
+
+    this.integrationApi = new IntegrationApi();
   }
 
   async computeActions(promotionCodes: string[], cart: CartDTO): Promise<ComputeActions[]> {
@@ -114,14 +109,14 @@ class TalonOneModuleService {
     const integrationState = await this.updateCustomerSessionV2(cart, uniquePromotionCodes);
 
     if (isDefined(integrationState)) {
-      console.log("Integration State:", JSON.stringify(integrationState, null, 2));
+      this.logger.info(`Integration State: ${JSON.stringify(integrationState, null, 2)}`);
       const actions = this.buildTalonOneComputedActions(cart, integrationState.effects);
       if (isDefined(actions)) {
         computedActions.push(...actions);
       }
     }
 
-    console.log("Computed Actions:", computedActions);
+    this.logger.info(`Computed Actions: ${JSON.stringify(computedActions, null, 2)}`);
     return computedActions;
   }
 
@@ -147,9 +142,9 @@ class TalonOneModuleService {
       state,
     };
 
-    console.log("TalonOne Session:", JSON.stringify(session, null, 2));
+    this.logger.info(`TalonOne Session: ${JSON.stringify(session, null, 2)}`);
 
-    const integrationState = await integrationApi.updateCustomerSessionV2(cart.id, {
+    const integrationState = await this.integrationApi.updateCustomerSessionV2(cart.id, {
       customerSession: session,
     });
 

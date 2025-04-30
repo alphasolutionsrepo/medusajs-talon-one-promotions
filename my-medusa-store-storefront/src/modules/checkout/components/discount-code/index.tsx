@@ -119,7 +119,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                         >
                           {promotion.code}
                         </Badge>{" "}
-                        (
+                        {/* (
                         {promotion.application_method?.value !== undefined &&
                           promotion.application_method.currency_code !==
                             undefined && (
@@ -135,7 +135,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                                   })}
                             </>
                           )}
-                        )
+                        ) */}
                         {/* {promotion.is_automatic && (
                           <Tooltip content="This promotion is automatically applied">
                             <InformationCircleSolid className="inline text-zinc-400" />
