@@ -1,4 +1,3 @@
-import { PromotionActions } from "@medusajs/framework/utils";
 import {
   createWorkflow,
   parallelize,
@@ -13,7 +12,6 @@ import {
   prepareAdjustmentsFromPromotionActionsStep,
   removeLineItemAdjustmentsStep,
   removeShippingMethodAdjustmentsStep,
-  updateCartPromotionsStep,
   useRemoteQueryStep,
 } from "@medusajs/medusa/core-flows";
 import { updateCustomerSessionStep } from "../steps/update-customer-session";
@@ -27,48 +25,22 @@ export type UpdateCartExternalPromotionsWorkflowInput = {
 
 export const updateCartExternalPromotionsWorkflowId = "update-cart-external-promotions";
 
-const cartFieldsForRefreshSteps = [
+const cartFields = [
   "id",
-  "currency_code",
   "quantity",
   "subtotal",
   "item_total",
   "total",
   "item_subtotal",
   "shipping_subtotal",
-  "region_id",
-  "metadata",
-  "completed_at",
-  "sales_channel_id",
-  "region.*",
   "items.*",
   "items.product.id",
-  "items.product.is_giftcard",
-  "items.product.collection_id",
-  "items.product.categories.id",
-  "items.product.tags.id",
-  "items.product.type_id",
   "items.variant.id",
   "items.variant.product.id",
-  "items.variant.weight",
-  "items.variant.length",
-  "items.variant.height",
-  "items.variant.width",
-  "items.variant.material",
   "items.adjustments.*",
-  "items.tax_lines.*",
-  "shipping_address.*",
   "shipping_methods.*",
   "shipping_methods.adjustments.*",
-  "shipping_methods.tax_lines.*",
-  "customer.*",
-  "customer.groups.*",
   "promotions.code",
-  "payment_collection.id",
-  "payment_collection.raw_amount",
-  "payment_collection.amount",
-  "payment_collection.currency_code",
-  "payment_collection.payment_sessions.id",
 ];
 
 export const updateCartExternalPromotionsWorkflow = createWorkflow(
@@ -79,7 +51,7 @@ export const updateCartExternalPromotionsWorkflow = createWorkflow(
     }).then(() => {
       return useRemoteQueryStep({
         entry_point: "cart",
-        fields: cartFieldsForRefreshSteps,
+        fields: cartFields,
         variables: { id: input.cart_id },
         list: false,
       });
@@ -108,7 +80,6 @@ export const updateCartExternalPromotionsWorkflow = createWorkflow(
       lineItemAdjustmentIdsToRemove,
       shippingMethodAdjustmentsToCreate,
       shippingMethodAdjustmentIdsToRemove,
-      // computedPromotionCodes,
     } = prepareAdjustmentsFromPromotionActionsStep({ actions });
 
     parallelize(
@@ -120,16 +91,11 @@ export const updateCartExternalPromotionsWorkflow = createWorkflow(
       createShippingMethodAdjustmentsStep({
         shippingMethodAdjustmentsToCreate,
       })
-      // updateCartPromotionsStep({
-      //   id: cart.id,
-      //   promo_codes: computedPromotionCodes,
-      //   action: PromotionActions.REPLACE,
-      // })
     );
 
     const refetchedCart = useRemoteQueryStep({
       entry_point: "cart",
-      fields: cartFieldsForRefreshSteps,
+      fields: cartFields,
       variables: { id: input.cart_id },
       list: false,
     }).config({ name: "refetch–cart" });
